@@ -17,6 +17,11 @@ public class Player : MonoBehaviour
 
     List<RaycastHit2D> castCollisions = new List<RaycastHit2D>();
 
+    [SerializeField] private SpriteRenderer blibSprite;
+    [SerializeField] private AnimationCurve jumpCurve;
+    bool isJumping = false;
+    private Vector3 originalScale;
+
     private void Awake()
     {
         if (Instance != null)
@@ -35,16 +40,53 @@ public class Player : MonoBehaviour
             useLayerMask = false,
             useTriggers = false
         };
+        originalScale=blibSprite.transform.localScale;
     }
 
     private void Update()
     {
         inputVec = gameInput.GetMovementVectorNormalized();
+        if (Input.GetButtonDown("Jump"))
+            Jump(0.5f, 0.0f);
     }
 
     private void FixedUpdate()
     {
+        
         HandleMovement();
+    }
+
+    private void Jump(float jumpHeightScale, float jumpPushScale)
+    {
+        if (!isJumping)
+        {
+            StartCoroutine(JumpCo(jumpHeightScale, jumpPushScale));
+        }
+    }
+
+    private IEnumerator JumpCo(float jumpHeightScale, float jumpPushScale)
+    {
+        isJumping = true;
+
+        float jumpStartTime = Time.time;
+        float jumpDuration = 2;
+
+        while (isJumping)
+        {
+            float jumpCompletePercentage = (Time.time - jumpStartTime) / jumpDuration;
+            jumpCompletePercentage =Mathf.Clamp01(jumpCompletePercentage);
+
+            blibSprite.transform.localScale = originalScale + originalScale * jumpCurve.Evaluate(jumpCompletePercentage) * jumpHeightScale;
+
+            if (jumpCompletePercentage == 1.0f)
+                break;
+
+            yield return null;
+        }
+
+        blibSprite.transform.localScale = originalScale;
+        isJumping = false;
+
     }
 
     private void HandleMovement()
