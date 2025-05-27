@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using System;
 
 public class Player : MonoBehaviour
@@ -21,6 +22,8 @@ public class Player : MonoBehaviour
     [SerializeField] private AnimationCurve jumpCurve;
     bool isJumping = false;
     private Vector3 originalScale;
+
+    private int currentLevel=0;
 
     private void Awake()
     {
@@ -48,6 +51,10 @@ public class Player : MonoBehaviour
         inputVec = gameInput.GetMovementVectorNormalized();
         if (Input.GetButtonDown("Jump"))
             Jump(0.5f, 0.0f);
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            Debug.Log(getLevel());
+        }
     }
 
     private void FixedUpdate()
@@ -69,7 +76,7 @@ public class Player : MonoBehaviour
         isJumping = true;
 
         float jumpStartTime = Time.time;
-        float jumpDuration = 2;
+        float jumpDuration = 0.5f;
 
         while (isJumping)
         {
@@ -109,7 +116,7 @@ public class Player : MonoBehaviour
     {
         float castDistance = moveSpeed * Time.fixedDeltaTime + collisionOffset;
         int hits = rb.Cast(direction, movementFilter, castCollisions, castDistance);
-
+        
         if (hits == 0)
         {
             Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
@@ -118,7 +125,47 @@ public class Player : MonoBehaviour
         }
         else
         {
+            var nearest = castCollisions
+                          .Take(hits)
+                          .OrderBy(h => h.distance)
+                          .First();
+            var plat = nearest.collider.GetComponent<Platform>();
+
+            if (plat != null)
+            {
+                int delta = plat.getLevel() - currentLevel;
+                Debug.Log(delta);
+                if(delta ==0)
+                {
+                    plat.DisablePlatform();
+                    Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
+                    rb.MovePosition(newPos);
+                    return true;
+                }
+                else if(delta == 1 & isJumping)
+                {
+                    plat.DisablePlatform();
+                    Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
+                    rb.MovePosition(newPos);
+                    currentLevel++;
+                    return true;
+                }
+                else
+                    return false;
+            }
             return false;
         }
     }
+
+    public int getLevel()
+    {
+        return currentLevel;
+    }
+
+    public void resetLevel()
+    {
+        currentLevel = 0;
+    }
+
+    
 }
