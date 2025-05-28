@@ -48,13 +48,20 @@ public class Player : MonoBehaviour
             useTriggers = false
         };
         originalScale=blibSprite.transform.localScale;
+
+        gameInput.OnJumpAction += GameInput_Jump;
+    }
+
+    private void GameInput_Jump(object sender, System.EventArgs e)
+    {
+        Jump(0.5f, 0.0f);
     }
 
     private void Update()
     {
         inputVec = gameInput.GetMovementVectorNormalized();
-        if (Input.GetButtonDown("Jump"))
-            Jump(0.5f, 0.0f);
+        //if (Input.GetButtonDown("Jump"))
+        //    Jump(0.5f, 0.0f);
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             Debug.Log(getLevel());
