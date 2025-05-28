@@ -19,7 +19,7 @@ public class PlatformSensor : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Exit");
+            other.GetComponent<Player>().UpdateCurrentLevel();
             platform.EnablePlatform();
         }
     }

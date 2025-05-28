@@ -16,6 +16,10 @@ public class Player : MonoBehaviour
     private ContactFilter2D movementFilter;
     private Vector2 inputVec;
 
+    [SerializeField] LayerMask platformLayerMask;
+    float groundCheckRadius = 0.1f;
+    Vector2 feetOffset = new Vector2(0, -0.5f);
+
     List<RaycastHit2D> castCollisions = new List<RaycastHit2D>();
 
     [SerializeField] private SpriteRenderer blibSprite;
@@ -148,6 +152,27 @@ public class Player : MonoBehaviour
             }
             return false;
         }
+    }
+
+    public void UpdateCurrentLevel()
+    {
+        Vector2 feetPos = (Vector2)transform.position + feetOffset;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            feetPos,
+            groundCheckRadius,
+            platformLayerMask
+        );
+
+        int maxLevel = 0;
+        foreach (var c in hits)
+        {
+            var plat = c.GetComponent<Platform>();
+            if (plat != null)
+                maxLevel = Mathf.Max(maxLevel, plat.Level);
+        }
+
+        currentLevel = maxLevel;
     }
 
     public int getLevel()
