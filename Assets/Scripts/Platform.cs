@@ -5,6 +5,7 @@ using UnityEngine;
 public class Platform : MonoBehaviour,I_Platform
 {
     [SerializeField] private int level;
+    public int Level => level;
     private Collider2D col;
     public void Start()
     {

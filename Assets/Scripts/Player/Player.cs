@@ -59,7 +59,6 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        
         HandleMovement();
     }
 
@@ -135,19 +134,13 @@ public class Player : MonoBehaviour
             {
                 int delta = plat.getLevel() - currentLevel;
                 Debug.Log(delta);
-                if(delta ==0)
+                if(delta ==0 || delta == 1 & isJumping)
                 {
                     plat.DisablePlatform();
                     Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
                     rb.MovePosition(newPos);
-                    return true;
-                }
-                else if(delta == 1 & isJumping)
-                {
-                    plat.DisablePlatform();
-                    Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
-                    rb.MovePosition(newPos);
-                    currentLevel++;
+                    if(delta==1)
+                        currentLevel= plat.Level;
                     return true;
                 }
                 else
