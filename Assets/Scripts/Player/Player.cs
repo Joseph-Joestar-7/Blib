@@ -16,9 +16,7 @@ public class Player : MonoBehaviour
     private ContactFilter2D movementFilter;
     private Vector2 inputVec;
 
-    [SerializeField] LayerMask platformLayerMask;
-    float groundCheckRadius = 0.1f;
-    Vector2 feetOffset = new Vector2(0, -0.5f);
+    
 
     List<RaycastHit2D> castCollisions = new List<RaycastHit2D>();
 
@@ -27,7 +25,7 @@ public class Player : MonoBehaviour
     bool isJumping = false;
     private Vector3 originalScale;
 
-    private int currentLevel=0;
+    
 
     private void Awake()
     {
@@ -60,11 +58,9 @@ public class Player : MonoBehaviour
     private void Update()
     {
         inputVec = gameInput.GetMovementVectorNormalized();
-        //if (Input.GetButtonDown("Jump"))
-        //    Jump(0.5f, 0.0f);
+        
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            Debug.Log(getLevel());
         }
     }
 
@@ -143,54 +139,18 @@ public class Player : MonoBehaviour
 
             if (plat != null)
             {
-                int delta = plat.getLevel() - currentLevel;
-                Debug.Log(delta);
-                if(delta ==0 || delta == 1 & isJumping)
+                if (isJumping)
                 {
                     plat.DisablePlatform();
                     Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
                     rb.MovePosition(newPos);
-                    if(delta==1)
-                        currentLevel= plat.Level;
                     return true;
                 }
                 else
                     return false;
             }
+
             return false;
         }
-    }
-
-    public void UpdateCurrentLevel()
-    {
-        Vector2 feetPos = (Vector2)transform.position + feetOffset;
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(
-            feetPos,
-            groundCheckRadius,
-            platformLayerMask
-        );
-
-        int maxLevel = 0;
-        foreach (var c in hits)
-        {
-            var plat = c.GetComponent<Platform>();
-            if (plat != null)
-                maxLevel = Mathf.Max(maxLevel, plat.Level);
-        }
-
-        currentLevel = maxLevel;
-    }
-
-    public int getLevel()
-    {
-        return currentLevel;
-    }
-
-    public void resetLevel()
-    {
-        currentLevel = 0;
-    }
-
-    
+    }   
 }
