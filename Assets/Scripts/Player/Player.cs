@@ -16,8 +16,6 @@ public class Player : MonoBehaviour
     private ContactFilter2D movementFilter;
     private Vector2 inputVec;
 
-    
-
     List<RaycastHit2D> castCollisions = new List<RaycastHit2D>();
 
     [SerializeField] private SpriteRenderer blibSprite;
@@ -25,7 +23,12 @@ public class Player : MonoBehaviour
     bool isJumping = false;
     private Vector3 originalScale;
 
-    
+    private int playerLevel = 0;
+    public event EventHandler<OnLevelChangedArgs> OnLevelChanged;
+    public class OnLevelChangedArgs:EventArgs
+    {
+        public int level;
+    }
 
     private void Awake()
     {
@@ -48,7 +51,14 @@ public class Player : MonoBehaviour
         originalScale=blibSprite.transform.localScale;
 
         gameInput.OnJumpAction += GameInput_Jump;
+        gameInput.OnInteractAction += GameInput_Interact;
     }
+
+    private void GameInput_Interact(object sender, System.EventArgs e)
+    {
+        
+    }
+
 
     private void GameInput_Jump(object sender, System.EventArgs e)
     {
@@ -61,12 +71,19 @@ public class Player : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
+            
         }
     }
 
     private void FixedUpdate()
     {
         HandleMovement();
+        HandleInteractions();
+    }
+
+    private void HandleInteractions()
+    {
+
     }
 
     private void Jump(float jumpHeightScale, float jumpPushScale)
@@ -84,6 +101,12 @@ public class Player : MonoBehaviour
         float jumpStartTime = Time.time;
         float jumpDuration = 0.5f;
 
+        playerLevel += 1;
+        OnLevelChanged?.Invoke(this, new OnLevelChangedArgs
+        {
+            level = playerLevel
+        });
+
         while (isJumping)
         {
             float jumpCompletePercentage = (Time.time - jumpStartTime) / jumpDuration;
@@ -96,10 +119,56 @@ public class Player : MonoBehaviour
 
             yield return null;
         }
+        if(checkIsOnCollider())
+        {
 
+        }
+        else
+        {
+            playerLevel = 0;
+            OnLevelChanged?.Invoke(this, new OnLevelChangedArgs
+            {
+                level = playerLevel
+            });
+
+        }
         blibSprite.transform.localScale = originalScale;
         isJumping = false;
 
+    }
+
+    private bool checkIsOnCollider()
+    {
+        RaycastHit2D hit = Physics2D.CircleCast(transform.position, 0.1f, Vector2.down, 0.1f);
+
+        return hit.collider.GetComponent<Platform>() != null;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.GetComponent<Platform>()!= null)
+        {
+            
+
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.GetComponent<Platform>() != null )
+        {
+            
+            if(!checkIsOnCollider() && isJumping == false)
+            {
+                playerLevel = 0;
+                
+                OnLevelChanged?.Invoke(this, new OnLevelChangedArgs
+                {
+                    level = playerLevel
+                });
+            }
+            
+        }
     }
 
     private void HandleMovement()
@@ -131,25 +200,6 @@ public class Player : MonoBehaviour
         }
         else
         {
-            var nearest = castCollisions
-                          .Take(hits)
-                          .OrderBy(h => h.distance)
-                          .First();
-            var plat = nearest.collider.GetComponent<Platform>();
-
-            if (plat != null)
-            {
-                if (isJumping)
-                {
-                    plat.DisablePlatform();
-                    Vector2 newPos = rb.position + inputVec * moveSpeed * Time.fixedDeltaTime;
-                    rb.MovePosition(newPos);
-                    return true;
-                }
-                else
-                    return false;
-            }
-
             return false;
         }
     }   
